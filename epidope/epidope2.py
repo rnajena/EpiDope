@@ -6,7 +6,6 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 ########################
 # import all needed packages
 print('\nLoading packages.')
-import pickle
 import os
 
 os.environ['KMP_WARNINGS'] = 'off'
@@ -14,23 +13,14 @@ from keras import layers, optimizers, models
 from keras.regularizers import l2
 import time
 from sklearn.preprocessing import LabelEncoder
-import sys
 import numpy as np
-# deeploc needs theano v1.0.4
-# conda install -c conda-forge theano 
-# os.environ['THEANO_FLAGS']='device=cpu,floatX=float32,optimizer=fast_compile'
-# from DeepLoc.models import *
-# from DeepLoc.utils import *
-from math import pi
 from bokeh.models import ColumnDataSource, Plot, LinearAxis, Grid, Range1d, Label, BoxAnnotation
 from bokeh.layouts import column
 from bokeh.models.glyphs import Text
 from bokeh.models import Legend
-from bokeh.io import export_svgs
 from bokeh.plotting import figure, output_file, save
 import tensorflow as tf
 from multiprocessing import Pool
-import glob
 from utils import DataGenerator
 from allennlp.modules.elmo import Elmo, batch_to_ids
 
@@ -45,22 +35,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'  # {0, 1, 2 (warnings), 3 (errors)}
 starttime = time.time()
 
 
-def varible_embedding(seq):
-    character_ids = batch_to_ids(seq)
-    # if device != "cpu":
-    #     torch.cuda.empty_cache()
-    device = "cpu"
-    character_ids.to(device)
-    embedding = elmo(character_ids)
-    tensors = embedding['elmo_representations']
-    del character_ids, embedding
-    # print(f"GPU MEMORY: {get_gpu_memory_map()}")
-    embedding = [tensor.detach().cpu().numpy() for tensor in tensors]
-    embedding = (np.array(embedding).mean(axis=0))
-    return embedding
-
-
-######## Flo stuff ######
 class Protein_seq():
     def __init__(self, sequence, score, over_threshold, positions=None):
         self.sequence = sequence
@@ -71,99 +45,6 @@ class Protein_seq():
         else:
             self.positions = positions
 
-
-def readFasta_extended(file):
-    ## read fasta file
-    header = ""
-    seq = ""
-    values = []
-    with open(file, "r") as infa:
-        for index, line in enumerate(infa):
-            line = line.strip()
-            if index == 0:
-                header = line[1:].split("\t")
-            elif index == 1:
-                seq += line
-            elif index == 2:
-                pass
-            else:
-                values = line.split("\t")
-    return header, seq, values
-
-
-# def prepare_sequences(seq_local, header, shift, use_circular_filling=False, global_embedding_bool=True, big_set=True):
-#     if use_circular_filling:
-#         protein_pad_local = list(seq_local[-shift:] + seq_local + seq_local[0:shift])
-#     else:
-#         protein_pad_local = ["-"] * (len(seq_local) + (shift * 2))
-#
-#     if global_embedding_bool:
-#         if big_set:
-#             file_name = header[0].split("_")
-#             assert len(file_name) == 4, f"filename of unexpected form, expected epi_1234_100_123 but got {header[0]}"
-#             file_name = file_name[0] + "_" + file_name[1]
-#             seq_global_tuple = pickle.load(
-#                 open(os.path.join("/home/go96bix/projects/raw_data/embeddings_bepipred_samples",
-#                                   file_name + ".pkl"), "rb"))
-#             seq_global = seq_global_tuple[1]
-#
-#         else:
-#             print(seq_local)
-#             sample_embedding = elmo_embedder.seqvec.embed_sentence(seq_local)
-#             sample_embedding = sample_embedding.mean(axis=0)
-#             seq_global = sample_embedding
-#
-#         protein_pad_global = np.zeros((len(seq_local) + (shift * 2), 1024), dtype=np.float32)
-#         if use_circular_filling:
-#             protein_pad_global[0:shift] = seq_global[-shift:]
-#             protein_pad_global[-shift:] = seq_global[0:shift]
-#
-#     for i in range(0, len(seq_local), 1):
-#         protein_pad_local[i + (shift)] = seq_local[i]
-#
-#         if global_embedding_bool:
-#             protein_pad_global[i + (shift)] = seq_global[i]
-#
-#     protein_pad_local = "".join(protein_pad_local)
-#     # epitope_arr_local.append([epitope, values, header, file])
-#
-#     # if global_embedding_bool:
-#     # 	epitope_arr_global.append([protein_pad_global, values, header, file])
-#
-#     if global_embedding_bool:
-#         return protein_pad_local, protein_pad_global
-#     else:
-#         return protein_pad_local
-
-
-# def build_model_old(nodes, seq_length, dropout=0):
-#     model = models.Sequential()
-#     model.add(layers.Embedding(21, 10, input_length=seq_length))
-#     model.add(layers.Bidirectional(layers.LSTM(nodes, return_sequences=True, dropout=dropout, recurrent_dropout=0.2)))
-#     model.add(layers.Bidirectional(layers.LSTM(nodes, dropout=dropout, recurrent_dropout=0.2)))
-#     model.add(layers.Dense(nodes))
-#     model.add(layers.LeakyReLU(alpha=0.01))
-#     model.add(layers.Dense(2, activation='softmax'))
-#
-#     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
-#     model.summary()
-#     return model
-
-
-# def build_model(nodes, dropout, seq_length, weight_decay_lstm= 0, weight_decay_dense=0):
-# 	""" model with elmo embeddings for amino acids"""
-# 	inputs = layers.Input(shape=(seq_length, 1024))
-# 	hidden = layers.Bidirectional(layers.LSTM(nodes, input_shape=(seq_length,1024), return_sequences=True, dropout=dropout, recurrent_dropout=0.2, kernel_regularizer=l2(weight_decay_lstm), recurrent_regularizer=l2(weight_decay_lstm), bias_regularizer=l2(weight_decay_lstm)))(inputs)
-# 	hidden = layers.Bidirectional(layers.LSTM(nodes, dropout=dropout, recurrent_dropout=0.2, kernel_regularizer=l2(weight_decay_lstm), recurrent_regularizer=l2(weight_decay_lstm), bias_regularizer=l2(weight_decay_lstm)))(hidden)
-# 	hidden = layers.Dense(nodes, kernel_regularizer=l2(weight_decay_dense), bias_regularizer=l2(weight_decay_dense))(hidden)
-# 	hidden = layers.LeakyReLU(alpha=0.01)(hidden)
-#
-# 	out = layers.Dense(2, activation='softmax', kernel_regularizer=l2(weight_decay_dense), bias_regularizer=l2(weight_decay_dense))(hidden)
-# 	model= models.Model(inputs=inputs,outputs=out)
-#
-# 	model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
-# 	model.summary()
-# 	return model
 
 def build_model(nodes, dropout, seq_length, weight_decay_lstm=1e-6, weight_decay_dense=1e-3, non_binary=False,
                 own_embedding=False, both_embeddings=False):
@@ -188,7 +69,6 @@ def build_model(nodes, dropout, seq_length, weight_decay_lstm=1e-6, weight_decay
         left = layers.Dense(nodes)(left)
         left = layers.LeakyReLU(alpha=0.01)(left)
         out_left = layers.Flatten()(left)
-        # big_model = models.Model(embedding_input, out_left)
 
         seq_input = layers.Input(shape=(seq_length,))
         right = layers.Embedding(27, 10, input_length=seq_length)(seq_input)
@@ -199,9 +79,7 @@ def build_model(nodes, dropout, seq_length, weight_decay_lstm=1e-6, weight_decay
         right = layers.Dense(nodes)(right)
         right = layers.LeakyReLU(alpha=0.01)(right)
         out_right = layers.Flatten()(right)
-        # small_model = models.Model(seq_input, out_right)
 
-        # hidden = layers.concatenate([big_model(embedding_input),small_model(seq_input)])
         hidden = layers.concatenate([out_left, out_right])
 
     else:
@@ -214,10 +92,6 @@ def build_model(nodes, dropout, seq_length, weight_decay_lstm=1e-6, weight_decay
             layers.LSTM(nodes, dropout=dropout, recurrent_dropout=0.2, kernel_regularizer=l2(weight_decay_lstm),
                         recurrent_regularizer=l2(weight_decay_lstm), bias_regularizer=l2(weight_decay_lstm)))(hidden)
 
-    # hidden = layers.Dense(nodes, kernel_regularizer=l2(weight_decay_dense), bias_regularizer=l2(weight_decay_dense))(
-    # 	inputs)
-    # hidden = layers.LeakyReLU(alpha=0.01)(hidden)
-    # hidden = layers.Flatten()(hidden)
     hidden = layers.Dense(nodes, kernel_regularizer=l2(weight_decay_dense), bias_regularizer=l2(weight_decay_dense))(
         hidden)
 
@@ -235,31 +109,12 @@ def build_model(nodes, dropout, seq_length, weight_decay_lstm=1e-6, weight_decay
         model.compile(optimizer="adam", loss='binary_crossentropy')
     else:
         if both_embeddings:
-            # set_trainability(big_model, False)
-            # small_model.compile(optimizer="adam", loss='binary_crossentropy', metrics=['acc', auc_10_perc_fpr])
-            # big_model.compile(optimizer=adam, loss='binary_crossentropy', metrics=['acc', auc_10_perc_fpr])
             model.compile(optimizer=adam, loss='binary_crossentropy')
             model.summary()
             return model, None, None
-        # return model, small_model, big_model
         model.compile(optimizer=adam, loss='binary_crossentropy')
     model.summary()
     return model, None, None
-
-
-def parse_amino(x):
-    """
-    Takes amino acid sequence and parses it to a numerical sequence.
-    """
-    amino = "GALMFWKQESPVICYHRNDTU"
-    encoder = LabelEncoder()
-    encoder.fit(list(amino))
-    out = []
-    for i in x:
-        dnaSeq = i[1].upper()
-        encoded_X = encoder.transform(list(dnaSeq))
-        out.append(encoded_X)
-    return np.array(out)
 
 
 def split_AA_seq(seq, slicesize, shift):
@@ -308,8 +163,9 @@ def read_fasta(multifasta, delim, idpos):
                     fasta[acNumber] = line.strip()
     return fasta, fastaheader
 
-##### reading provided epitope lists #######
+
 def read_epi_seqs(epi_seqs):
+    ##### reading provided epitope lists #######
     epitopes = list()
     print('Reading provided epitope sequences.')
     with open(epi_seqs, 'r') as infile:
@@ -317,6 +173,7 @@ def read_epi_seqs(epi_seqs):
             epitopes.append(line.strip())
     print('There were ' + str(len(epitopes)) + ' epitope sequences provided.')
     return epi_seqs
+
 
 def read_non_epi_seqs(non_epi_seqs):
     nonepitopes = list()
@@ -330,25 +187,13 @@ def read_non_epi_seqs(non_epi_seqs):
 
 def ensemble_prediction(model, path, inputs_test, suffix, nb_samples, middle_name="", prediction_weights=False,
                         nb_classes=2):
-    use_all_models = True
     models_filenames = []
     for file in sorted(os.listdir(path)):
         if file.endswith(f"_{suffix}.hdf5") and file.startswith(f"weights_model_{middle_name}k-fold_run_"):
             models_filenames.append(os.path.join(path, file))
 
-    # inputFileName = str(args.i).split("/")[-1]
-    # if inputFileName.startswith("benchmark_"):
-    #     model_num = inputFileName.split("_")[1][:-len(".fasta")]
-    #     print(f"use only model {model_num} for prediction")
-    #     use_all_models = False
     preds = []
     for fn in models_filenames:
-        if not use_all_models:
-            inputFileName = str(fn).split("/")[-1]
-            if not inputFileName.startswith(f"weights_model_{middle_name}k-fold_run_{model_num}"):
-                continue
-            else:
-                models_filenames = [fn]
         model.load_weights(fn, by_name=True)
         pred = model.predict(inputs_test)
         preds.append(pred)
@@ -361,9 +206,9 @@ def ensemble_prediction(model, path, inputs_test, suffix, nb_samples, middle_nam
 
     return weighted_predictions
 
+
 def predict_files(fasta, slicesize, epitope_threshold):
     # constants
-    model_path = "/home/go96bix/projects/epitop_pred/with_errors/data_generator_bepipred_binary_0.5_seqID/weights.best.auc10.25_nodes_with_decay_global_100epochs_08Dropout.hdf5"
     shift = 24
     local_embedding = False
     use_circular_filling = False
@@ -380,8 +225,7 @@ def predict_files(fasta, slicesize, epitope_threshold):
         elmo_embedder = DataGenerator.Elmo_embedder()
         return model, elmo_embedder
 
-
-    def show_progress(filecounter, printlen = 1):
+    def show_progress(filecounter, printlen=1):
 
         ############### progress ###############
         elapsed_time = time.strftime("%H:%M:%S", time.gmtime(time.time() - starttime))
@@ -470,8 +314,6 @@ def predict_files(fasta, slicesize, epitope_threshold):
 
     print('\nPredicting DeEpiPred scores.')
 
-    filecounter = 1
-
     protein_results_dict = {}
     for geneid in fasta:
         protein = fasta[geneid]
@@ -498,7 +340,8 @@ def output_results(outdir, protein_results_dict, epitope_threshold, epitope_slic
     ######## epitope table #########
     predicted_epitopes = {}
 
-    print(f'\n\nWriting predicted epitopes to:\n{outdir}/predicted_epitopes.csv\n{outdir}/predicted_epitopes_sliced.faa')
+    print(
+        f'\n\nWriting predicted epitopes to:\n{outdir}/predicted_epitopes.csv\n{outdir}/predicted_epitopes_sliced.faa')
 
     with open(f'{outdir}/predicted_epitopes.csv', 'w') as outfile:
         with open(f'{outdir}/predicted_epitopes_sliced.faa', 'w') as outfile2:
@@ -552,6 +395,7 @@ def output_results(outdir, protein_results_dict, epitope_threshold, epitope_slic
                                         f'>{geneid}|pos_{i+epi[0]}:{i+epi[0]+epitope_slicelen}\n{epi[2][i:i+epitope_slicelen]}\n')
                         outfile.write(f'{epiout}')
     return predicted_epitopes
+
 
 def plot_results(fasta, protein_results_dict, outdir, epitope_threshold, epitopes, nonepitopes, fastaheader,
                  predicted_epitopes):
@@ -629,8 +473,10 @@ def plot_results(fasta, protein_results_dict, outdir, epitope_threshold, epitope
                 if seq.find(epi) > -1:
                     start = seq.find(epi) + 1
                     end = start + len(epi) + 1
-                    non_epitope = [-0.02] * (start - 1) + [1.02] * len(epi) + [-0.02] * ((protlen - (start - 1) - len(epi)))
-                    p.vbar(x=list(pos), bottom=-0.02, top=non_epitope, width=1, alpha=0.2, line_alpha=0, color='darkgreen',
+                    non_epitope = [-0.02] * (start - 1) + [1.02] * len(epi) + [-0.02] * (
+                    (protlen - (start - 1) - len(epi)))
+                    p.vbar(x=list(pos), bottom=-0.02, top=non_epitope, width=1, alpha=0.2, line_alpha=0,
+                           color='darkgreen',
                            legend='predicted_epitopes', visible=True)
 
         # add known epitope boxes
@@ -650,27 +496,31 @@ def plot_results(fasta, protein_results_dict, outdir, epitope_threshold, epitope
                 if seq.find(epi) > -1:
                     start = seq.find(epi) + 1
                     end = start + len(epi) + 1
-                    non_epitope = [-0.02] * (start - 1) + [1.02] * len(epi) + [-0.02] * ((protlen - (start - 1) - len(epi)))
-                    p.vbar(x=list(pos), bottom=-0.02, top=non_epitope, width=1, alpha=0.2, line_alpha=0, color='darkred',
+                    non_epitope = [-0.02] * (start - 1) + [1.02] * len(epi) + [-0.02] * (
+                    (protlen - (start - 1) - len(epi)))
+                    p.vbar(x=list(pos), bottom=-0.02, top=non_epitope, width=1, alpha=0.2, line_alpha=0,
+                           color='darkred',
                            legend='provided_non_epitope', visible=True)
 
         column(p, plot)
         save(column(p, plot))
 
-if __name__ == '__main__':
-    pass
 
-
-def start_pipeline( multifasta, outdir, delim, idpos, epitope_threshold, epitope_slicelen, slice_shiftsize, threads, epi_seqs, non_epi_seqs,
-                    slicesize = 49):
+def start_pipeline(multifasta, outdir, delim, idpos, epitope_threshold, epitope_slicelen, slice_shiftsize, threads,
+                   epi_seqs, non_epi_seqs,slicesize=49):
     """
-    starts the pipeline
-    :param epitope_threshold:
-    :param multifasta:
-    :param delim:
-    :param idpos:
-    :param epi_seqs:
-    :param non_epi_seqs:
+    load input, predict proteins, save results
+    :param multifasta: Multi- or Singe- Fasta file with protein sequences.
+    :param outdir: Specifies output directory. Default = .
+    :param delim: Delimiter char for fasta header. Default = White space.
+    :param idpos: Position of gene ID in fasta header. Zero based. Default = 0.
+    :param epitope_threshold: Threshold for epitope score. Default = 0.818.
+    :param epitope_slicelen: Length of the sliced predicted epitopes. Default = 15.
+    :param slice_shiftsize: Shiftsize of the slices on predited epitopes. Default = 5.
+    :param threads: Number of processes used for predictions. Default = #CPU-cores.
+    :param epi_seqs: File containing a list of known epitope sequences for plotting.
+    :param non_epi_seqs: File containing a list of non epitope sequences for plotting.
+    :param slicesize: Size of the window used for the epitope prediction.
     :return:
     """
 
@@ -681,9 +531,9 @@ def start_pipeline( multifasta, outdir, delim, idpos, epitope_threshold, epitope
     # prepare files
     fasta, fastaheader = read_fasta(multifasta, delim, idpos)
 
-    if epi_seqs!=None:
+    if epi_seqs != None:
         epi_seqs = read_epi_seqs(epi_seqs)
-    if non_epi_seqs!=None:
+    if non_epi_seqs != None:
         non_epi_seqs = read_non_epi_seqs(non_epi_seqs)
 
     # calc prediction
@@ -696,3 +546,7 @@ def start_pipeline( multifasta, outdir, delim, idpos, epitope_threshold, epitope
     # plot output
     plot_results(fasta, protein_results_dict, outdir, epitope_threshold, epi_seqs, non_epi_seqs, fastaheader,
                  predicted_epitopes)
+
+
+if __name__ == '__main__':
+    pass
