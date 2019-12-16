@@ -1,4 +1,3 @@
-from pathlib import Path
 import numpy as np
 import keras
 import os
@@ -7,8 +6,6 @@ from functools import partial
 from random import sample as randsomsample
 import pandas as pd
 import math
-import sys
-from sklearn.preprocessing import LabelEncoder
 from allennlp.commands.elmo import ElmoEmbedder
 import torch
 import warnings
@@ -16,15 +13,18 @@ import warnings
 
 class Elmo_embedder():
     def __init__(self, model_dir='/home/go96bix/projects/deep_eve/seqvec/uniref50_v2', weights="/weights.hdf5",
-                 options="/options.json"):
-        torch.set_num_threads(multiprocessing.cpu_count() // 2)
+                 options="/options.json", threads=1000):
+        if threads==1000:
+            torch.set_num_threads(multiprocessing.cpu_count() // 2)
+        else:
+            torch.set_num_threads(threads)
+
         self.model_dir = model_dir
         self.weights = self.model_dir + weights
         self.options = self.model_dir + options
         self.seqvec = ElmoEmbedder(self.options, self.weights, cuda_device=-1)
 
     def elmo_embedding(self, X, start=None, stop=None):
-        # X_trimmed = X[:, start:stop]
         assert start == None and stop == None, "deprecated to use start stop, please trim seqs beforehand"
 
         if type(X[0]) == str:

@@ -9,6 +9,7 @@ print('\nLoading packages.')
 import os
 
 os.environ['KMP_WARNINGS'] = 'off'
+import keras.backend as K
 from keras import layers, optimizers, models
 from keras.regularizers import l2
 import time
@@ -111,10 +112,10 @@ def build_model(nodes, dropout, seq_length, weight_decay_lstm=1e-6, weight_decay
         if both_embeddings:
             model.compile(optimizer=adam, loss='binary_crossentropy')
             model.summary()
-            return model, None, None
+            return model
         model.compile(optimizer=adam, loss='binary_crossentropy')
     model.summary()
-    return model, None, None
+    return model
 
 
 def split_AA_seq(seq, slicesize, shift):
@@ -187,6 +188,7 @@ def read_non_epi_seqs(non_epi_seqs):
 
 def ensemble_prediction(model, path, inputs_test, suffix, nb_samples, middle_name="", prediction_weights=False,
                         nb_classes=2):
+
     models_filenames = []
     for file in sorted(os.listdir(path)):
         if file.endswith(f"_{suffix}.hdf5") and file.startswith(f"weights_model_{middle_name}k-fold_run_"):
@@ -207,7 +209,7 @@ def ensemble_prediction(model, path, inputs_test, suffix, nb_samples, middle_nam
     return weighted_predictions
 
 
-def predict_files(fasta, slicesize, epitope_threshold):
+def predict_files(fasta, slicesize, epitope_threshold, threads):
     # constants
     shift = 24
     local_embedding = False
@@ -218,11 +220,11 @@ def predict_files(fasta, slicesize, epitope_threshold):
     filecounter = 1
     total = str(len(fasta))
 
-    def make_model_and_embedder(slicesize):
+    def make_model_and_embedder(slicesize, threads):
         print('Deep Neural Network model summary:')
         nodes = 10
-        model, foo, baz = build_model(nodes, dropout=0, seq_length=slicesize, both_embeddings=both_embeddings)
-        elmo_embedder = DataGenerator.Elmo_embedder()
+        model = build_model(nodes, dropout=0, seq_length=slicesize, both_embeddings=both_embeddings)
+        elmo_embedder = DataGenerator.Elmo_embedder(threads=threads)
         return model, elmo_embedder
 
     def show_progress(filecounter, printlen=1):
@@ -233,7 +235,6 @@ def predict_files(fasta, slicesize, epitope_threshold):
         if len(printstring) < printlen:
             print(' ' * printlen, end='\r')
         print(printstring, end='\r')
-        # printlen = len(printstring)
         filecounter += 1
         return filecounter
 
@@ -285,7 +286,7 @@ def predict_files(fasta, slicesize, epitope_threshold):
 
         return X_test, nb_samples, positions
 
-    def predict_protein(model, X_test, protein, nb_samples, positions, epitope_threshold):
+    def predict_protein(model, X_test, protein, nb_samples, positions, epitope_threshold, threads):
         path_weights = "/home/go96bix/projects/epitop_pred/data_generator_bepipred_binary_double_cluster_0.8_0.5_seqID"
         suffix_weights = "both_embeddings_50epochs"
         middle_name = ""
@@ -310,9 +311,15 @@ def predict_files(fasta, slicesize, epitope_threshold):
         return protein_result
 
     # make_model
-    model, elmo_embedder = make_model_and_embedder(slicesize)
+    model, elmo_embedder = make_model_and_embedder(slicesize, threads)
 
     print('\nPredicting DeEpiPred scores.')
+
+    # set number of threads used
+    if threads != 1000:
+        config = tf.ConfigProto(intra_op_parallelism_threads=threads, inter_op_parallelism_threads=threads)
+        session = tf.Session(config=config)
+        K.set_session(session)
 
     protein_results_dict = {}
     for geneid in fasta:
@@ -323,7 +330,7 @@ def predict_files(fasta, slicesize, epitope_threshold):
         X_test, nb_samples, positions = prepare_input(protein, elmo_embedder, local_embedding, both_embeddings,
                                                       use_circular_filling, shift, slicesize)
 
-        protein_result = predict_protein(model, X_test, protein, nb_samples, positions, epitope_threshold)
+        protein_result = predict_protein(model, X_test, protein, nb_samples, positions, epitope_threshold, threads)
         protein_results_dict.update({geneid: protein_result})
 
     return protein_results_dict
@@ -507,7 +514,7 @@ def plot_results(fasta, protein_results_dict, outdir, epitope_threshold, epitope
 
 
 def start_pipeline(multifasta, outdir, delim, idpos, epitope_threshold, epitope_slicelen, slice_shiftsize, threads,
-                   epi_seqs, non_epi_seqs,slicesize=49):
+                   epi_seqs, non_epi_seqs, slicesize=49):
     """
     load input, predict proteins, save results
     :param multifasta: Multi- or Singe- Fasta file with protein sequences.
@@ -537,7 +544,7 @@ def start_pipeline(multifasta, outdir, delim, idpos, epitope_threshold, epitope_
         non_epi_seqs = read_non_epi_seqs(non_epi_seqs)
 
     # calc prediction
-    protein_results_dict = predict_files(fasta, slicesize, epitope_threshold)
+    protein_results_dict = predict_files(fasta, slicesize, epitope_threshold, threads)
 
     # save output
     predicted_epitopes = output_results(outdir, protein_results_dict, epitope_threshold, epitope_slicelen,
