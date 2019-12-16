@@ -511,7 +511,7 @@ def plot_results(fasta, protein_results_dict, outdir, epitope_threshold, epitope
 
         column(p, plot)
         save(column(p, plot))
-
+    print()
 
 def start_pipeline(multifasta, outdir, delim, idpos, epitope_threshold, epitope_slicelen, slice_shiftsize, threads,
                    epi_seqs, non_epi_seqs, slicesize=49):

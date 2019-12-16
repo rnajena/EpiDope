@@ -52,10 +52,10 @@ def cli(args=None):
     assert args.p >= 0, "error parameter --processes: Number of processes needs to be higher than 0"
     assert os.path.isfile(args.i), f"error {args.i} is not a file"
 
-    import epidope2
-    epidope2.start_pipeline(multifasta=args.i, outdir=args.o, delim=args.delim, idpos=args.idpos,
-                            epitope_threshold=args.t, epitope_slicelen=args.l, slice_shiftsize=args.s, threads=args.p,
-                            epi_seqs=args.e, non_epi_seqs=args.n)
+    import epidope
+    epidope.start_pipeline(multifasta=args.i, outdir=args.o, delim=args.delim, idpos=args.idpos,
+                           epitope_threshold=args.t, epitope_slicelen=args.l, slice_shiftsize=args.s, threads=args.p,
+                           epi_seqs=args.e, non_epi_seqs=args.n)
     # No return value means no error.
     # Return a value of 1 or higher to signify an error.
     # See https://docs.python.org/3/library/sys.html#sys.exit
