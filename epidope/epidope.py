@@ -1,34 +1,24 @@
-# suppresses anaconda FutureWarnings
 import warnings
-
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
-########################
-# import all needed packages
 print('\nLoading packages.')
-import os
 
-os.environ['KMP_WARNINGS'] = 'off'
-import keras.backend as K
+import os
+from keras.backend import set_session
 from keras import layers, optimizers, models
 from keras.regularizers import l2
 import time
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
-from bokeh.models import ColumnDataSource, Plot, LinearAxis, Grid, Range1d, Label, BoxAnnotation
+from bokeh.models import ColumnDataSource, Plot, LinearAxis, Grid, Range1d, Label
 from bokeh.layouts import column
 from bokeh.models.glyphs import Text
 from bokeh.models import Legend
 from bokeh.plotting import figure, output_file, save
 import tensorflow as tf
-from multiprocessing import Pool
-from utils import DataGenerator
-from allennlp.modules.elmo import Elmo, batch_to_ids
-
-model_dir = '/home/go96bix/projects/deep_eve/seqvec/uniref50_v2/'
-weights = 'weights.hdf5'
-options = 'options.json'
-elmo = Elmo(model_dir + options, model_dir + weights, 3)
+from utils import embedder
+# silence deprecation warnings
+import tensorflow.python.util.deprecation as deprecation
+deprecation._PRINT_DEPRECATION_WARNINGS = False
 
 # filters tensor flow output (the higher the number the more ist filtered)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'  # {0, 1, 2 (warnings), 3 (errors)}
@@ -173,7 +163,7 @@ def read_epi_seqs(epi_seqs):
         for line in infile:
             epitopes.append(line.strip())
     print('There were ' + str(len(epitopes)) + ' epitope sequences provided.')
-    return epi_seqs
+    return epitopes
 
 
 def read_non_epi_seqs(non_epi_seqs):
@@ -183,12 +173,11 @@ def read_non_epi_seqs(non_epi_seqs):
         for line in infile:
             nonepitopes.append(line.strip())
     print('There were ' + str(len(nonepitopes)) + ' non-epitope sequences provided.')
-    return non_epi_seqs
+    return nonepitopes
 
 
 def ensemble_prediction(model, path, inputs_test, suffix, nb_samples, middle_name="", prediction_weights=False,
                         nb_classes=2):
-
     models_filenames = []
     for file in sorted(os.listdir(path)):
         if file.endswith(f"_{suffix}.hdf5") and file.startswith(f"weights_model_{middle_name}k-fold_run_"):
@@ -224,7 +213,7 @@ def predict_files(fasta, slicesize, epitope_threshold, threads):
         print('Deep Neural Network model summary:')
         nodes = 10
         model = build_model(nodes, dropout=0, seq_length=slicesize, both_embeddings=both_embeddings)
-        elmo_embedder = DataGenerator.Elmo_embedder(threads=threads)
+        elmo_embedder = embedder.Elmo_embedder(threads=threads)
         return model, elmo_embedder
 
     def show_progress(filecounter, printlen=1):
@@ -319,7 +308,7 @@ def predict_files(fasta, slicesize, epitope_threshold, threads):
     if threads != 1000:
         config = tf.ConfigProto(intra_op_parallelism_threads=threads, inter_op_parallelism_threads=threads)
         session = tf.Session(config=config)
-        K.set_session(session)
+        set_session(session)
 
     protein_results_dict = {}
     for geneid in fasta:
@@ -393,7 +382,8 @@ def output_results(outdir, protein_results_dict, epitope_threshold, epitope_slic
                         epiout = ''
                         for epi in predicted_epis:
                             epiout = f'{epiout}\n{geneid}\t{epi[0]}\t{epi[1]}\t{epi[2]}\t{epi[3]}'
-                            predicted_epitopes[geneid].append(epi[2])
+                            # predicted_epitopes[geneid].append(epi[2])
+                            predicted_epitopes[geneid].append(epi)
                             # print slices to blast table
                             ### sliced epitope regions
                             if len(epi[2]) > epitope_slicelen:
@@ -477,41 +467,43 @@ def plot_results(fasta, protein_results_dict, outdir, epitope_threshold, epitope
         # add predicted epitope boxes
         if predicted_epitopes[geneid]:
             for epi in predicted_epitopes[geneid]:
-                if seq.find(epi) > -1:
-                    start = seq.find(epi) + 1
-                    end = start + len(epi) + 1
-                    non_epitope = [-0.02] * (start - 1) + [1.02] * len(epi) + [-0.02] * (
-                    (protlen - (start - 1) - len(epi)))
-                    p.vbar(x=list(pos), bottom=-0.02, top=non_epitope, width=1, alpha=0.2, line_alpha=0,
-                           color='darkgreen',
-                           legend='predicted_epitopes', visible=True)
+                start = epi[0]
+                end = epi[1]+1
+                non_epitope = [-0.02] * (start - 1) + [1.02] * (end-start) + [-0.02] * (
+                    (protlen - (start - 1) - (end-start)))
+                p.vbar(x=list(pos), bottom=-0.02, top=non_epitope, width=1, alpha=0.2, line_alpha=0,
+                       color='darkgreen',
+                       legend_label='predicted_epitopes', visible=True)
 
         # add known epitope boxes
         if epitopes:
             for epi in epitopes:
-                if seq.find(epi) > -1:
-                    start = seq.find(epi) + 1
-                    end = start + len(epi) + 1
-                    epitope = [-0.02] * (start - 1) + [1.02] * len(epi) + [-0.02] * ((protlen - (start - 1) - len(epi)))
-                    p.vbar(x=list(pos), bottom=-0.02, top=epitope, width=1, alpha=0.2, line_alpha=0, color='blue',
-                           legend='provided_epitope', visible=True)
-        #				output_file(f'{outdir}/plots/{geneid}_epi.html') # adds _epi suffix to outfile if a supplied epitope was provided
+                hits = [i for i in range(len(seq)) if seq[i:].startswith(epi)]
+                if len(hits)>0:
+                    for hit in hits:
+                        start = hit
+                        end = start + len(epi)
+                        epitope = [-0.02] * (start) + [1.02] * len(epi) + [-0.02] * ((protlen - (start) - len(epi)))
+                        p.vbar(x=list(pos), bottom=-0.02, top=epitope, width=1, alpha=0.2, line_alpha=0, color='blue',
+                               legend_label='provided_epitope', visible=True)
 
         # add non-epitope boxes
         if nonepitopes:
             for epi in nonepitopes:
-                if seq.find(epi) > -1:
-                    start = seq.find(epi) + 1
-                    end = start + len(epi) + 1
-                    non_epitope = [-0.02] * (start - 1) + [1.02] * len(epi) + [-0.02] * (
-                    (protlen - (start - 1) - len(epi)))
-                    p.vbar(x=list(pos), bottom=-0.02, top=non_epitope, width=1, alpha=0.2, line_alpha=0,
-                           color='darkred',
-                           legend='provided_non_epitope', visible=True)
+                hits = [i for i in range(len(seq)) if seq[i:].startswith(epi)]
+                if len(hits) > 0:
+                    for hit in hits:
+                        start = hit
+                        end = start + len(epi)
+                        non_epitope = [-0.02] * (start) + [1.02] * len(epi) + [-0.02] * (
+                            (protlen - (start) - len(epi)))
+                        p.vbar(x=list(pos), bottom=-0.02, top=non_epitope, width=1, alpha=0.2, line_alpha=0,
+                               color='darkred', legend_label='provided_non_epitope', visible=True)
 
         column(p, plot)
         save(column(p, plot))
     print()
+
 
 def start_pipeline(multifasta, outdir, delim, idpos, epitope_threshold, epitope_slicelen, slice_shiftsize, threads,
                    epi_seqs, non_epi_seqs, slicesize=49):
@@ -538,9 +530,9 @@ def start_pipeline(multifasta, outdir, delim, idpos, epitope_threshold, epitope_
     # prepare files
     fasta, fastaheader = read_fasta(multifasta, delim, idpos)
 
-    if epi_seqs != None:
+    if epi_seqs is not None:
         epi_seqs = read_epi_seqs(epi_seqs)
-    if non_epi_seqs != None:
+    if non_epi_seqs is not None:
         non_epi_seqs = read_non_epi_seqs(non_epi_seqs)
 
     # calc prediction

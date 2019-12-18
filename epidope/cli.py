@@ -48,7 +48,7 @@ def cli(args=None):
 
     # do something with the args
     args.idpos, args.t, args.l, args.s, args.p = int(args.idpos), float(args.t), int(args.l), int(args.s), int(args.p)
-    assert args.t >= 0 and args.t <= 1, "error parameter --threshold: only thresholds between 0 and 1 allowed"
+    assert 0 <= args.t <= 1, "error parameter --threshold: only thresholds between 0 and 1 allowed"
     assert args.p >= 0, "error parameter --processes: Number of processes needs to be higher than 0"
     assert os.path.isfile(args.i), f"error {args.i} is not a file"
 

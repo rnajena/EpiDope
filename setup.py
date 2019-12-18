@@ -2,7 +2,7 @@ from setuptools import setup
 import versioneer
 
 requirements = [
-    # package requirements go here
+    'tensorflow', 'bokeh', 'numpy', 'sklearn', 'keras', 'torch', 'allennlp'  # package requirements go here
 ]
 
 setup(
