@@ -15,10 +15,13 @@ from bokeh.models.glyphs import Text
 from bokeh.models import Legend
 from bokeh.plotting import figure, output_file, save
 import tensorflow as tf
-from utils import embedder
+from epidope.utils import embedder
 # silence deprecation warnings
-import tensorflow.python.util.deprecation as deprecation
-deprecation._PRINT_DEPRECATION_WARNINGS = False
+try:
+    import tensorflow.python.util.deprecation as deprecation
+    deprecation._PRINT_DEPRECATION_WARNINGS = False
+except:
+    pass
 
 # filters tensor flow output (the higher the number the more ist filtered)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'  # {0, 1, 2 (warnings), 3 (errors)}
@@ -229,19 +232,21 @@ def predict_files(fasta, slicesize, epitope_threshold, threads):
 
     def prepare_input(protein, elmo_embedder, local_embedding, both_embeddings, use_circular_filling, shift, slicesize):
         if local_embedding:
-            seq = protein.upper()
-
-            if use_circular_filling:
-                seq_extended = list(seq[-shift:] + seq + seq[0:shift])
-            else:
-                seq_extended = np.array(["-"] * (len(seq) + (shift * 2)))
-                seq_extended[shift:-shift] = np.array(list(seq))
-
-            seq_slices = split_AA_seq(seq_extended, slicesize, shift)
-            positions = seq_slices[:, 0]
-            seq_slices_input = np.array([list(i) for i in seq_slices[:, 1]])
-            X_test = elmo_embedder.elmo_embedding(seq_slices_input, 0, slicesize)
-            nb_samples = X_test.shape[0]
+            warnings.warn("local_embedding is deprecated")
+            exit()
+            # seq = protein.upper()
+            #
+            # if use_circular_filling:
+            #     seq_extended = list(seq[-shift:] + seq + seq[0:shift])
+            # else:
+            #     seq_extended = np.array(["-"] * (len(seq) + (shift * 2)))
+            #     seq_extended[shift:-shift] = np.array(list(seq))
+            #
+            # seq_slices = split_AA_seq(seq_extended, slicesize, shift)
+            # positions = seq_slices[:, 0]
+            # seq_slices_input = np.array([list(i) for i in seq_slices[:, 1]])
+            # X_test = elmo_embedder.elmo_embedding(seq_slices_input, 0, slicesize)
+            # nb_samples = X_test.shape[0]
 
         # embedding whole protein version
         else:
