@@ -7,7 +7,7 @@ Prediction of B-cell epitopes from amino acid sequences using deep neural networ
 2.  Create a Conda environment with Python 3.7
 
     ```bash
-    conda create -n allennlp python=3.7
+    conda create -n epidope python=3.7
     ```
     
 3.  Activate the Conda environment. You will need to activate the Conda environment in each terminal in which you want to use epidope.
