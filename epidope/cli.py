@@ -1,7 +1,5 @@
 from argparse import ArgumentParser, SUPPRESS
-# from epidope import __version__
-# from ._version import get_versions
-# __version__ = get_versions()['version']
+from epidope import __version__
 import os
 
 
@@ -11,8 +9,8 @@ def cli(args=None):
         conflict_handler='resolve', add_help=False
     )
     required = parser.add_argument_group('required arguments')
-    required.add_argument('-i', '-infile', help='Multi- or Singe- Fasta file with protein sequences.', metavar='<File>',
-                          required=True)
+    required.add_argument('-i', '--infile', help='Multi- or Singe- Fasta file with protein sequences.',
+                          metavar='<File>',required=True)
 
     optional = parser.add_argument_group('optional arguments')
     # Add back help
@@ -37,31 +35,24 @@ def cli(args=None):
     optional.add_argument('-n', '--nonepitopes', help='File containing a list of non epitope sequences for plotting.',
                           default=None, metavar='<File>')
 
-    # parser.add_argument(
-    #     '-V', '--version',
-    #     action='version',
-    #     help='Show the conda-prefix-replacement version number and exit.',
-    #     version="epidope %s" % __version__,
-    # )
+    parser.add_argument('-V', '--version', action='version', help='Show the epidope version number and exit.',
+                        version="epidope %s" % __version__, )
 
     args = parser.parse_args(args)
 
-    # do something with the args
-    args.idpos, args.t, args.l, args.s, args.p = int(args.idpos), float(args.t), int(args.l), int(args.s), int(args.p)
-    assert 0 <= args.t <= 1, "error parameter --threshold: only thresholds between 0 and 1 allowed"
-    assert args.p >= 0, "error parameter --processes: Number of processes needs to be higher than 0"
-    assert os.path.isfile(args.i), f"error {args.i} is not a file"
+    args.idpos, args.threshold, args.slicelen, args.slice_shiftsize, args.processes = int(args.idpos), float(
+        args.threshold), int(args.slicelen), int(args.slice_shiftsize), int(args.processes)
+    assert 0 <= args.threshold <= 1, "error parameter --threshold: only thresholds between 0 and 1 allowed"
+    assert args.processes >= 0, "error parameter --processes: Number of processes needs to be higher than 0"
+    assert os.path.isfile(args.infile), f"error {args.infile} is not a file"
 
     from epidope import epidope2
-    epidope2.start_pipeline(multifasta=args.i, outdir=args.o, delim=args.delim, idpos=args.idpos,
-                           epitope_threshold=args.t, epitope_slicelen=args.l, slice_shiftsize=args.s, threads=args.p,
-                           epi_seqs=args.e, non_epi_seqs=args.n)
-    # No return value means no error.
-    # Return a value of 1 or higher to signify an error.
-    # See https://docs.python.org/3/library/sys.html#sys.exit
+    epidope2.start_pipeline(multifasta=args.infile, outdir=args.outdir, delim=args.delim, idpos=args.idpos,
+                            epitope_threshold=args.threshold, epitope_slicelen=args.slicelen,
+                            slice_shiftsize=args.slice_shiftsize, threads=args.processes,
+                            epi_seqs=args.epitopes, non_epi_seqs=args.nonepitopes)
 
 
-# cli(sys.argv[1:])
 if __name__ == '__main__':
     import sys
 
