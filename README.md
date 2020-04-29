@@ -1,5 +1,5 @@
 # EpiDope
-Prediction of B-cell epitopes from amino acid sequences using deep neural networks.
+Prediction of B-cell epitopes from amino acid sequences using deep neural networks. Supported on Linux and Mac.
 ## Installation
 
 1.  [Download and install Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
