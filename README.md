@@ -25,7 +25,7 @@ Prediction of B-cell epitopes from amino acid sequences using deep neural networ
     ```bash
     pip install allennlp
     ```
-    
+
 ## Usage
 **Example**
 
@@ -49,3 +49,17 @@ command | what it does
 -e, --epitopes        |File containing a list of known epitope sequences for plotting
 -n, --nonepitopes     |File containing a list of non epitope sequences for plotting
 -h, --help            |show this message and exit
+
+## Docker
+We also provide a Docker image for EpiDope. Either build the image yourself locally from the `Dockerfile` in this repo
+
+```bash
+docker build -t epidope .
+```
+
+or pull and run a ready-to-use image from Dockerhub:
+
+```bash
+docker run --rm -it -v /path/to/input/files:/in -v /path/to/output:/out mhoelzer/epidope:v0.1 -i /in/proteins.fasta -o /out/epidope_results
+```
+(you need to mount files/folders that you want to access in the Docker via `-v`)
