@@ -4,7 +4,7 @@
 package:
   name: epidope
   
-  version: 0.1
+  version: 0.2
 #  version: {{ data['version'] }}
 
 source:
@@ -13,12 +13,12 @@ source:
 build:
   # If the installation is complex, or different between Unix and Windows, use
   # separate bld.bat and build.sh files instead of this key.  Add the line
-  #  number: 0
+  number: 24
   noarch: python
   script: python setup.py install --single-version-externally-managed --record=record.txt
   #  script: {{ PYTHON }} -m pip install --no-deps --ignore-installed -vv .
   #  to limit to Python 3.6 and newer
-  skip: True  # [py<36]
+#  skip: True  # [py<36]
 
 
 requirements:

@@ -3,7 +3,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 print('\nLoading packages.')
 
 import os
-from keras.backend import set_session
+from tensorflow.python.keras.backend import set_session
 from keras import layers, optimizers, models
 from keras.regularizers import l2
 import time
@@ -16,6 +16,7 @@ from bokeh.models import Legend
 from bokeh.plotting import figure, output_file, save
 import tensorflow as tf
 from epidope.utils import embedder
+from pathlib import Path
 # silence deprecation warnings
 try:
     import tensorflow.python.util.deprecation as deprecation
@@ -116,7 +117,7 @@ def split_AA_seq(seq, slicesize, shift):
     Takes input sequence and slicesize: Returns slices of that sequence with a slice length of 'slicesize' with a sliding window of 1.
     """
     splited_AA_seqs = []
-    for i in range(0, len(seq) - slicesize):
+    for i in range(0, len(seq) - slicesize + 1):
         splited_AA_seqs.append([i + (slicesize // 2) - shift, seq[i:i + slicesize]])
     return np.array(splited_AA_seqs)
 
@@ -127,7 +128,7 @@ def split_embedding_seq(embeddings, slicesize, shift):
     splited_em_seqs = []
     for protein in embeddings:
         splited_em_seq = []
-        for i in range(0, len(protein) - slicesize):
+        for i in range(0, len(protein) - slicesize + 1):
             splited_em_seq.append([i + (slicesize // 2) - shift, protein[i:i + slicesize]])
         foo = np.array(splited_em_seq)
         splited_em_seqs.append(splited_em_seq)
@@ -197,9 +198,12 @@ def ensemble_prediction(model, path, inputs_test, suffix, nb_samples, middle_nam
     weighted_predictions = np.zeros((nb_samples, nb_classes), dtype='float32')
     for weight, prediction in zip(prediction_weights, preds):
         weighted_predictions += weight * np.array(prediction)
-
     return weighted_predictions
 
+    # # new shape (seqlen, num_models, num_classes) e.g. (270,10,2)
+    # median_prediction = np.array(preds).swapaxes(0, 1)
+    # median_prediction = np.median(median_prediction, axis=1)
+    # return median_prediction
 
 def predict_files(fasta, slicesize, epitope_threshold, threads):
     # constants
@@ -281,7 +285,8 @@ def predict_files(fasta, slicesize, epitope_threshold, threads):
         return X_test, nb_samples, positions
 
     def predict_protein(model, X_test, protein, nb_samples, positions, epitope_threshold, threads):
-        path_weights = "/home/go96bix/projects/epitop_pred/data_generator_bepipred_binary_double_cluster_0.8_0.5_seqID"
+        path_weights = "./epidope_weights/"
+        path_weights = Path(__file__).resolve().parent / Path(path_weights)
         suffix_weights = "both_embeddings_50epochs"
         middle_name = ""
 
@@ -307,7 +312,7 @@ def predict_files(fasta, slicesize, epitope_threshold, threads):
     # make_model
     model, elmo_embedder = make_model_and_embedder(slicesize, threads)
 
-    print('\nPredicting DeEpiPred scores.')
+    print('\nPredicting EpiDope scores.')
 
     # set number of threads used
     if threads != 1000:
@@ -362,7 +367,7 @@ def output_results(outdir, protein_results_dict, epitope_threshold, epitope_slic
                     out = f'{outdir}/epidope/{geneid}.csv'
                     with open(out, 'w') as outfile6:
                         # write complete scores to file
-                        outfile6.write('#Aminoacid\tDeepipred\n')
+                        outfile6.write('position\taminoacid\tscore\n')
                         outfile3.write(f'>{geneid}\n')
                         for x in range(len(seq)):
                             outfile3.write(f'{x+1}\t{seq[x]}\t{scores[x]}\n')
