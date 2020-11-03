@@ -23,7 +23,7 @@ Prediction of B-cell epitopes from amino acid sequences using deep neural networ
 5. Install other dependencies
 
     ```bash
-    pip install allennlp
+    pip install allennlp==0.9.0
     ```
 
 ## Usage
