@@ -60,6 +60,7 @@ docker build -t epidope .
 or pull and run a ready-to-use image from Dockerhub:
 
 ```bash
-docker run --rm -it -v /path/to/input/files:/in -v /path/to/output:/out mhoelzer/epidope:v0.1 -i /in/proteins.fasta -o /out/epidope_results
+docker run --rm -v /path/to/input/files:/in -v /path/to/output:/out \
+mhoelzer/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
 ```
 (you need to mount files/folders that you want to access in the Docker via `-v`)
