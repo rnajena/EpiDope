@@ -64,3 +64,7 @@ docker run --rm -v /path/to/input/files:/in -v /path/to/output:/out \
 mhoelzer/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
 ```
 (you need to mount files/folders that you want to access in the Docker via `-v`)
+
+#### Further
+If you are interessted most of the code which was used to create this tool see:
+https://github.com/flomock/epitop_pred
