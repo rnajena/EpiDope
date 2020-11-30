@@ -66,5 +66,5 @@ mhoelzer/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
 (you need to mount files/folders that you want to access in the Docker via `-v`)
 
 #### Further
-If you are interessted most of the code which was used to create this tool see:
+If you are interessted, you find most of the code which was used to create this tool under:
 https://github.com/flomock/epitop_pred
