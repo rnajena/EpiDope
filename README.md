@@ -20,6 +20,8 @@ Prediction of B-cell epitopes from amino acid sequences using deep neural networ
     ```bash
     conda install -c flomock -c conda-forge -c pytorch epidope
     ```
+   Note: While installation with conda, the loading bar of epidope is not working. So depending on your internet connection, it can take from a few seconds too minutes until you see any progress.
+   
 5. Install other dependencies
 
     ```bash
