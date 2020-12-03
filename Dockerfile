@@ -9,7 +9,7 @@ RUN conda config --add channels conda-forge && \
     conda config --add channels pytorch && \
     conda config --add channels default
 
-RUN conda install -y python=3.7 pip $TOOL=$VERSION && conda clean -a
+RUN conda install -y python=3.7 pip $TOOL=$VERSION h5py=2.10 jsonnet && conda clean -a
 RUN pip install allennlp==0.9.0
 RUN pip install docutils==0.15
 

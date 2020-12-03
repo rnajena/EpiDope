@@ -18,7 +18,7 @@ Prediction of B-cell epitopes from amino acid sequences using deep neural networ
 4. Install epidope via conda 
 
     ```bash
-    conda install -c flomock -c conda-forge -c pytorch epidope
+    conda install -c flomock -c conda-forge -c pytorch epidope h5py=2.10 jsonnet 
     ```
    Note: While installation with conda, the loading bar of epidope is not working. So depending on your internet connection, it can take from a few seconds too minutes until you see any progress.
    
@@ -53,20 +53,21 @@ command | what it does
 -h, --help            |show this message and exit
 
 ## Docker
-We also provide a Docker image for EpiDope. Either build the image yourself locally from the `Dockerfile` in this repo
+We also provide a Docker image for EpiDope.  
+Simply pull and run a ready-to-use image from Dockerhub:  
+```bash
+docker run -t --rm -v /path/to/input/files:/in -v /path/to/output:/out \
+flomock/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
+```
+(you need to mount files/folders that you want to access in the Docker via `-v`)
 
+Or if you want you can build the image yourself locally from the `Dockerfile` in this repo:
 ```bash
 docker build -t epidope .
 ```
 
-or pull and run a ready-to-use image from Dockerhub:
-
-```bash
-docker run --rm -v /path/to/input/files:/in -v /path/to/output:/out \
-mhoelzer/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
-```
-(you need to mount files/folders that you want to access in the Docker via `-v`)
 
 #### Further
-If you are interessted, you find most of the code which was used to create this tool under:
+If you are interested, you find most of the code which was used to create this tool under:
+
 https://github.com/flomock/epitop_pred
