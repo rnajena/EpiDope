@@ -70,7 +70,7 @@ Or if you want you can build the image yourself locally from the `Dockerfile` in
 docker build -t epidope .
 ```
 
-Note:
+#### Note:  
 Run as non-root user under linux:
 ```bash
 docker run -t --rm -v /path/to/input/files:/in -v /path/to/output:/out -u `id -u $USER`:`id -g $USER` \
@@ -78,9 +78,9 @@ flomock/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
 ```
 
 Run docker with a different memory allocation see [System requirements](#System-requirements) (default is 2GB for linux and mac):  
-(e.g. 4GB)
+(e.g. 8GB)
 ```bash
-docker run -t --rm -v -m=4g /path/to/input/files:/in -v /path/to/output:/out \
+docker run -t --rm -v -m=8g /path/to/input/files:/in -v /path/to/output:/out \
 flomock/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
 ```
 
