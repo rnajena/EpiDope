@@ -60,7 +60,7 @@ command | what it does
 We also provide a Docker image for EpiDope.  
 Simply pull and run a ready-to-use image from Dockerhub:  
 ```bash
-docker run -t --rm -v /path/to/input/files:/in -v /path/to/output:/out \
+docker run -t --rm -v /path/to/input/files:/in -v /path/to/output:/out -u `id -u $USER`:`id -g $USER` \
 flomock/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
 ```
 (you need to mount files/folders that you want to access in the Docker via `-v`)
