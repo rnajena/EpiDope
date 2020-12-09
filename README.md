@@ -1,5 +1,9 @@
 # EpiDope
 Prediction of B-cell epitopes from amino acid sequences using deep neural networks. Supported on Linux and Mac.
+
+## System requirements
+8 GB RAM should be available. If less, you might run into problems when processing protein sequences longer than 6000 amino acids and/or multiple hundreds of sequences.
+
 ## Installation
 
 1.  [Download and install Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
