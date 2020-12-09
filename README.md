@@ -36,7 +36,7 @@ Prediction of B-cell epitopes from amino acid sequences using deep neural networ
 **Example**
 
 ```bash
-epidope -i /path_to/multifasta.fa -o ./results/ -t 0.8 -e /known/epitopes.txt
+epidope -i /path_to/multifasta.fa -o ./results/ -e /known/epitopes.txt
 ```
 
 **Options:**
