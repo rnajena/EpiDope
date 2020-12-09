@@ -1,7 +1,7 @@
 # EpiDope
 Prediction of B-cell epitopes from amino acid sequences using deep neural networks. Supported on Linux and Mac.
 
-## System requirements
+## System-requirements
 8 GB RAM should be available. If less, you might run into problems when processing protein sequences longer than 6000 amino acids and/or multiple hundreds of sequences.
 
 ## Installation
@@ -65,17 +65,24 @@ flomock/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
 ```
 (you need to mount files/folders that you want to access in the Docker via `-v`)
 
+Or if you want you can build the image yourself locally from the `Dockerfile` in this repo:
+```bash
+docker build -t epidope .
+```
+
+Note:
 Run as non-root user under linux:
 ```bash
 docker run -t --rm -v /path/to/input/files:/in -v /path/to/output:/out -u `id -u $USER`:`id -g $USER` \
 flomock/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
 ```
 
-Or if you want you can build the image yourself locally from the `Dockerfile` in this repo:
+Run docker with a different memory allocation see [System requirements](#System-requirements) (default is 2GB for linux and mac):  
+(e.g. 4GB)
 ```bash
-docker build -t epidope .
+docker run -t --rm -v -m=4g /path/to/input/files:/in -v /path/to/output:/out \
+flomock/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
 ```
-
 
 #### Further
 If you are interested, you find most of the code which was used to create this tool under:
