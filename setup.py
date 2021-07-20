@@ -2,7 +2,6 @@ from setuptools import setup, find_packages
 
 requirements = [
     'tensorflow', 'bokeh', 'numpy', 'scikit-learn', 'keras', 'torch', 'allennlp'
-    # package requirements go here, sklearn
 ]
 
 setup(
@@ -33,4 +32,5 @@ setup(
     },
     install_requires=requirements,
     keywords='EpiDope',
+    python_requires="3.6"
 )
