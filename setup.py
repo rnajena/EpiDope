@@ -6,7 +6,7 @@ requirements = [
 
 setup(
     name='EpiDope',
-    version=0.2,
+    version=0.3,
     description="Prediction of B-cell epitopes from amino acid sequences using deep neural networks. ",
     license="MIT",
     author="Florian Mock, Maximilian Collatz",

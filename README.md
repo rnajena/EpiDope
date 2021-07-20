@@ -16,7 +16,7 @@ Prediction of B-cell epitopes from amino acid sequences using deep neural networ
 3. Create new repository and install epidope via mamba 
 
     ```bash
-    mamba install -c flomock -c conda-forge epidope
+    mamba create -n epidope -c flomock -c conda-forge epidope
     ```
    Note: While installation the loading bar of EpiDope may not work. So depending on your internet connection, it can take from a few seconds too minutes until you see any progress.
     
