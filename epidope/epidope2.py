@@ -211,6 +211,7 @@ def predict_files(fasta, slicesize, epitope_threshold, threads):
 
     ##### progress vars ####
     filecounter = 1
+    printlen = 1
     total = str(len(fasta))
 
     def make_model_and_embedder(slicesize, threads):
@@ -220,16 +221,18 @@ def predict_files(fasta, slicesize, epitope_threshold, threads):
         elmo_embedder = embedder.Elmo_embedder(threads=threads)
         return model, elmo_embedder
 
-    def show_progress(filecounter, printlen=1):
+    def show_progress(filecounter, printlen = 1):
 
         ############### progress ###############
         elapsed_time = time.strftime("%H:%M:%S", time.gmtime(time.time() - starttime))
         printstring = f'Predicting scores for: {geneid}    File: {filecounter} / {total}   Elapsed time: {elapsed_time}'
         if len(printstring) < printlen:
-            print(' ' * printlen, end='\r')
-        print(printstring, end='\r')
+            print(printstring+" " * (printlen-len(printstring)), end='\r')
+        else:
+            print(printstring, end='\r')
+        printlen = len(printstring)
         filecounter += 1
-        return filecounter
+        return filecounter, printlen
 
     def prepare_input(protein, elmo_embedder, local_embedding, both_embeddings, use_circular_filling, shift, slicesize):
         if local_embedding:
@@ -321,7 +324,7 @@ def predict_files(fasta, slicesize, epitope_threshold, threads):
     for geneid in fasta:
         protein = fasta[geneid]
 
-        filecounter = show_progress(filecounter)
+        filecounter, printlen = show_progress(filecounter,printlen)
 
         X_test, nb_samples, positions = prepare_input(protein, elmo_embedder, local_embedding, both_embeddings,
                                                       use_circular_filling, shift, slicesize)

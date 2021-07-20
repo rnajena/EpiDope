@@ -8,29 +8,24 @@ Prediction of B-cell epitopes from amino acid sequences using deep neural networ
 
 1.  [Download and install Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
 
-2.  Create a Conda environment with Python 3.7
+2.  Install mamba in your conda base repository
 
     ```bash
-    conda create -n epidope python=3.7
+    conda install -c conda-forge mamba
     ```
+3. Create new repository and install epidope via mamba 
+
+    ```bash
+    mamba install -c flomock -c conda-forge epidope
+    ```
+   Note: While installation the loading bar of EpiDope may not work. So depending on your internet connection, it can take from a few seconds too minutes until you see any progress.
     
-3.  Activate the Conda environment. You will need to activate the Conda environment in each terminal in which you want to use epidope.
+4.  Activate the Conda environment. You will need to activate the Conda environment in each terminal in which you want to use epidope.
 
     ```bash
     conda activate epidope
     ```
-4. Install epidope via conda 
-
-    ```bash
-    conda install -c flomock -c conda-forge -c pytorch epidope h5py=2.10 jsonnet 
-    ```
-   Note: While installation with conda, the loading bar of epidope is not working. So depending on your internet connection, it can take from a few seconds too minutes until you see any progress.
    
-5. Install other dependencies
-
-    ```bash
-    pip install allennlp==0.9.0
-    ```
 
 ## Usage
 **Example**
