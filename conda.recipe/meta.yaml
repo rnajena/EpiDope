@@ -9,7 +9,7 @@ source:
   path: ../
 
 build:
-  number: 29
+  number: 33
   noarch: python
 #  script: python setup.py install --single-version-externally-managed --record=record.txt
   script: python -m pip install --no-deps --ignore-installed .
@@ -24,12 +24,11 @@ requirements:
     - tensorflow <1.14
     - bokeh <2
     - numpy
-    - scikit-learn <2.23
+    - scikit-learn <0.23
     - keras <3
     - pytorch
     - libwebp
-    - h5py
-#    - jsonnet
+    - h5py <3
     - allennlp =0.7.2
     - mkl-service
 

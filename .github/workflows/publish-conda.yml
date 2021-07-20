@@ -1,0 +1,20 @@
+name: publish_conda
+
+on:
+  push:
+    paths:
+      - 'conda.recipe/**'          # only when new build is wanted (i.e., build number is incremented)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        lfs: true
+    - name: publish-to-conda
+      uses: alchem0x2A/conda-publish-action@v1.4
+      with:
+        subdir: 'conda.recipe'
+        anacondatoken: ${{ secrets.ANACONDA_TOKEN }}
+        platforms: 'noarch'

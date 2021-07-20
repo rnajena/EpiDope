@@ -1,5 +1,7 @@
+import numpy as np
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=np.VisibleDeprecationWarning)
 print('\nLoading packages.')
 
 import os
@@ -8,21 +10,16 @@ from keras import layers, optimizers, models
 from keras.regularizers import l2
 import time
 from sklearn.preprocessing import LabelEncoder
-import numpy as np
 from bokeh.models import ColumnDataSource, Plot, LinearAxis, Grid, Range1d, Label
 from bokeh.layouts import column
 from bokeh.models.glyphs import Text
 from bokeh.models import Legend
 from bokeh.plotting import figure, output_file, save
 import tensorflow as tf
+tf.logging.set_verbosity(tf.logging.ERROR)
 from epidope.utils import embedder
 from pathlib import Path
 # silence deprecation warnings
-try:
-    import tensorflow.python.util.deprecation as deprecation
-    deprecation._PRINT_DEPRECATION_WARNINGS = False
-except:
-    pass
 
 # filters tensor flow output (the higher the number the more ist filtered)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'  # {0, 1, 2 (warnings), 3 (errors)}

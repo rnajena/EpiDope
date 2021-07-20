@@ -31,6 +31,5 @@ setup(
         ]
     },
     install_requires=requirements,
-    keywords='EpiDope',
-    python_requires="3.6"
+    keywords='EpiDope'
 )
