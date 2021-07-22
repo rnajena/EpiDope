@@ -56,7 +56,7 @@ We also provide a Docker image for EpiDope.
 Simply pull and run a ready-to-use image from Dockerhub:  
 ```bash
 docker run -t --rm -v /path/to/input/files:/in -v /path/to/output:/out \
-flomock/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
+flomock/epidope:v0.3 -i /in/proteins.fasta -o /out/epidope_results
 ```
 (you need to mount files/folders that you want to access in the Docker via `-v`)
 
@@ -69,14 +69,14 @@ docker build -t epidope .
 Run as non-root user under linux:
 ```bash
 docker run -t --rm -v /path/to/input/files:/in -v /path/to/output:/out -u `id -u $USER`:`id -g $USER` \
-flomock/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
+flomock/epidope:v0.3 -i /in/proteins.fasta -o /out/epidope_results
 ```
 
 Run docker with a different memory allocation see [System requirements](#System-requirements) (default is 2GB for linux and mac):  
 (e.g. 8GB)
 ```bash
 docker run -t --rm -v -m=8g /path/to/input/files:/in -v /path/to/output:/out \
-flomock/epidope:v0.2 -i /in/proteins.fasta -o /out/epidope_results
+flomock/epidope:v0.3 -i /in/proteins.fasta -o /out/epidope_results
 ```
 
 #### Further
