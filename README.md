@@ -13,19 +13,21 @@ Prediction of B-cell epitopes from amino acid sequences using deep neural networ
     ```bash
     conda install -c conda-forge mamba
     ```
-3. Create new repository and install epidope via mamba 
+
+3. Download [the enviroment yml file](https://github.com/flomock/EpiDope/blob/master/epidope.yml)
+
+4. Create new repository and install epidope via mamba 
 
     ```bash
-    mamba create -n epidope -c flomock -c conda-forge epidope
+    mamba env create -f epidope.yml
     ```
-   Note: While installation the loading bar of EpiDope may not work. So depending on your internet connection, it can take from a few seconds too minutes until you see any progress.
     
-4.  Activate the Conda environment. You will need to activate the Conda environment in each terminal in which you want to use epidope.
+5.  Activate the Conda environment. You will need to activate the Conda environment in each terminal in which you want to use epidope.
 
     ```bash
     conda activate epidope
     ```
-   
+
 
 ## Usage
 **Example**
@@ -37,19 +39,19 @@ epidope -i /path_to/multifasta.fa -o ./results/ -e /known/epitopes.txt
 **Options:**
 
 
-command | what it does
-  ------------- | -------------
--i, --infile          |Multi- or Singe- Fasta file with protein sequences.  [required]
--o, --outdir          |Specifies output directory. Default = .
---delim               |Delimiter char for fasta header. Default = White space
---idpos               |Position of gene ID in fasta header. Zero based. Default = 0
--t, --threshold       |Threshold for epitope score. Default = 0.818
--l, --slicelen        |Length of the sliced predicted epitopes. Default = 15
--s, --slice_shiftsize |Shiftsize of the slices on predited epitopes. Default = 5
--p, --processes       |Number of processes used for predictions. Default = #CPU-cores
--e, --epitopes        |File containing a list of known epitope sequences for plotting
--n, --nonepitopes     |File containing a list of non epitope sequences for plotting
--h, --help            |show this message and exit
+| command               | what it does                                                 |
+| --------------------- | ------------------------------------------------------------ |
+| -i, --infile          | Multi- or Singe- Fasta file with protein sequences.  [required] |
+| -o, --outdir          | Specifies output directory. Default = .                      |
+| --delim               | Delimiter char for fasta header. Default = White space       |
+| --idpos               | Position of gene ID in fasta header. Zero based. Default = 0 |
+| -t, --threshold       | Threshold for epitope score. Default = 0.818                 |
+| -l, --slicelen        | Length of the sliced predicted epitopes. Default = 15        |
+| -s, --slice_shiftsize | Shiftsize of the slices on predited epitopes. Default = 5    |
+| -p, --processes       | Number of processes used for predictions. Default = #CPU-cores |
+| -e, --epitopes        | File containing a list of known epitope sequences for plotting |
+| -n, --nonepitopes     | File containing a list of non epitope sequences for plotting |
+| -h, --help            | show this message and exit                                   |
 
 ## Docker
 We also provide a Docker image for EpiDope.  
